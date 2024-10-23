@@ -2,25 +2,41 @@ from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from relevance import SkillMatcher
+import os
 
 app = FastAPI()
 
-# Add CORS middleware
+# Updated CORS settings for production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://your-frontend-url.vercel.app"  # Update with your Vercel URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize the SkillMatcher
-matcher = SkillMatcher('programming_languages.csv')
+# Initialize the SkillMatcher with error handling
+try:
+    matcher = SkillMatcher('programming_languages.csv')
+except Exception as e:
+    print(f"Error initializing SkillMatcher: {e}")
+    raise
 
 @app.on_event("startup")
 async def startup_event():
-    accuracy = matcher.train_classifier()
-    print(f"Model trained with accuracy: {accuracy:.2f}")
+    try:
+        accuracy = matcher.train_classifier()
+        print(f"Model trained with accuracy: {accuracy:.2f}")
+    except Exception as e:
+        print(f"Error during model training: {e}")
+        raise
+
+@app.get("/")
+async def root():
+    return {"status": "API is running"}
 
 @app.post("/api/match-skills")
 async def match_skills(skills: List[str] = Body(...)):
