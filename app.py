@@ -6,7 +6,6 @@ import os
 
 app = FastAPI()
 
-# Updated CORS settings for production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -18,7 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the SkillMatcher with error handling
 try:
     matcher = SkillMatcher('programming_languages.csv')
 except Exception as e:
